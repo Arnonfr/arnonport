@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Winamp Spotify — Demo</title>
+  <link rel="stylesheet" href="../src/renderer/styles.css" />
+  <style>
+    body {
+      background: #1e3a5f;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      gap: 20px;
+      font-family: Arial, sans-serif;
+      color: #fff;
+    }
+    .demo-frame {
+      width: 775px;
+      height: 116px;
+      resize: both;
+      overflow: hidden;
+      min-width: 275px;
+      min-height: 116px;
+    }
+    .demo-label {
+      text-align: center;
+      font-size: 14px;
+      opacity: 0.8;
+      letter-spacing: 2px;
+    }
+    .demo-label b { color: #0f0; }
+    .titlebar { -webkit-app-region: initial !important; }
+  </style>
+</head>
+<body>
+  <div class="demo-label">
+    <b>WINAMP &#9835; SPOTIFY</b> — Browser Demo (mock data, no real Spotify connection)
+  </div>
+
+  <div class="demo-frame">
+    <!-- copy of renderer markup -->
+    <div id="player" class="winamp">
+      <div class="titlebar" id="titlebar">
+        <span class="title-text">WINAMP &#9835; SPOTIFY</span>
+        <div class="title-buttons">
+          <button class="tb-btn" id="btn-ontop" title="Always on top">=</button>
+          <button class="tb-btn" id="btn-min" title="Minimize">_</button>
+          <button class="tb-btn" id="btn-close" title="Close">x</button>
+        </div>
+      </div>
+
+      <div class="main">
+        <div class="display">
+          <div class="display-top">
+            <div class="time" id="time">00:00</div>
+            <div class="status">
+              <span id="bitrate">320</span> kbps
+              <span id="khz">44</span> kHz
+              <span class="stereo" id="stereo">STEREO</span>
+            </div>
+          </div>
+          <div class="visualizer">
+            <canvas id="viz" width="76" height="16"></canvas>
+          </div>
+          <div class="marquee">
+            <div class="marquee-text" id="marquee">*** Winamp Spotify demo — press PLAY ***</div>
+          </div>
+          <div class="meta">
+            <span>kbps</span><span>kHz</span>
+          </div>
+        </div>
+
+        <div class="sliders">
+          <div class="slider-row">
+            <label>VOL</label>
+            <input type="range" id="volume" min="0" max="100" value="70" />
+          </div>
+          <div class="slider-row">
+            <label>POS</label>
+            <input type="range" id="position" min="0" max="1000" value="0" />
+          </div>
+        </div>
+
+        <div class="transport">
+          <button class="btn prev" id="btn-prev" title="Previous">&#9198;</button>
+          <button class="btn play" id="btn-play" title="Play">&#9654;</button>
+          <button class="btn pause" id="btn-pause" title="Pause">&#10073;&#10073;</button>
+          <button class="btn stop" id="btn-stop" title="Stop">&#9632;</button>
+          <button class="btn next" id="btn-next" title="Next">&#9197;</button>
+          <button class="btn shuffle" id="btn-shuffle" title="Shuffle">&#128256;</button>
+          <button class="btn repeat" id="btn-repeat" title="Repeat">&#128257;</button>
+        </div>
+      </div>
+
+      <button class="gear" id="btn-settings" title="Settings">&#9881;</button>
+    </div>
+  </div>
+
+  <div class="demo-label" style="font-size:11px;opacity:0.6;max-width:700px;text-align:center">
+    This is a browser preview. The real app runs in Electron and controls your Spotify
+    device via OAuth. Buttons here simulate playback with a fake queue.
+  </div>
+
+  <script>
+    // ---- Mock queue ----
+    const queue = [
+      { artist: 'Nirvana',        name: 'Smells Like Teen Spirit',  duration: 301000 },
+      { artist: 'Daft Punk',      name: 'Around The World',          duration: 429000 },
+      { artist: 'Radiohead',      name: 'Paranoid Android',          duration: 383000 },
+      { artist: 'The Prodigy',    name: 'Firestarter',               duration: 280000 },
+      { artist: 'Gorillaz',       name: 'Feel Good Inc.',            duration: 221000 },
+      { artist: 'Massive Attack', name: 'Teardrop',                  duration: 330000 }
+    ];
+
+    const state = {
+      idx: 0,
+      playing: false,
+      progressMs: 0,
+      volume: 70,
+      shuffle: false,
+      repeat: 'off'
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const fmtMs = (ms) => {
+      const s = Math.floor(ms / 1000);
+      return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+    };
+
+    function setMarquee(text) { $('marquee').textContent = text; }
+    function currentTrack() { return queue[state.idx]; }
+    function loadTrack() {
+      const t = currentTrack();
+      setMarquee(`  ${t.artist} - ${t.name}   [${fmtMs(t.duration)}]   `);
+      $('time').textContent = fmtMs(state.progressMs);
+    }
+
+    $('btn-play').onclick = () => { state.playing = true; };
+    $('btn-pause').onclick = () => { state.playing = false; };
+    $('btn-stop').onclick = () => { state.playing = false; state.progressMs = 0; $('position').value = 0; $('time').textContent = '00:00'; };
+    $('btn-next').onclick = () => { state.idx = (state.idx + 1) % queue.length; state.progressMs = 0; loadTrack(); };
+    $('btn-prev').onclick = () => { state.idx = (state.idx - 1 + queue.length) % queue.length; state.progressMs = 0; loadTrack(); };
+    $('btn-shuffle').onclick = (e) => { state.shuffle = !state.shuffle; e.currentTarget.style.color = state.shuffle ? '#fff' : '#00ff66'; };
+    $('btn-repeat').onclick = (e) => {
+      const order = { off: 'context', context: 'track', track: 'off' };
+      state.repeat = order[state.repeat];
+      e.currentTarget.style.color = state.repeat === 'off' ? '#00ff66' : '#fff';
+    };
+    $('volume').oninput = (e) => state.volume = +e.target.value;
+    $('position').oninput = (e) => {
+      const t = currentTrack();
+      state.progressMs = Math.floor((+e.target.value / 1000) * t.duration);
+      $('time').textContent = fmtMs(state.progressMs);
+    };
+    $('btn-settings').onclick = () => alert('Settings overlay — in the Electron app you enter your Spotify Client ID here.');
+    $('btn-min').onclick = () => alert('Minimize (no-op in browser demo).');
+    $('btn-close').onclick = () => alert('Close (no-op in browser demo).');
+    $('btn-ontop').onclick = () => alert('Always on top (no-op in browser demo).');
+
+    // Tick clock
+    setInterval(() => {
+      if (!state.playing) return;
+      const t = currentTrack();
+      state.progressMs += 250;
+      if (state.progressMs >= t.duration) {
+        if (state.repeat === 'track') { state.progressMs = 0; }
+        else { state.idx = (state.idx + 1) % queue.length; state.progressMs = 0; loadTrack(); }
+      }
+      $('time').textContent = fmtMs(state.progressMs);
+      $('position').value = Math.floor((state.progressMs / t.duration) * 1000);
+    }, 250);
+
+    // Visualizer
+    const canvas = $('viz');
+    const ctx = canvas.getContext('2d');
+    const bars = 18;
+    const barState = new Array(bars).fill(0);
+    function drawViz() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const bw = canvas.width / bars;
+      for (let i = 0; i < bars; i++) {
+        const target = state.playing ? Math.random() * canvas.height : 0;
+        barState[i] = barState[i] * 0.6 + target * 0.4;
+        const h = Math.max(1, barState[i]);
+        const grad = ctx.createLinearGradient(0, canvas.height - h, 0, canvas.height);
+        grad.addColorStop(0, '#00ff66');
+        grad.addColorStop(1, '#003311');
+        ctx.fillStyle = grad;
+        ctx.fillRect(i * bw + 1, canvas.height - h, bw - 2, h);
+      }
+      requestAnimationFrame(drawViz);
+    }
+    drawViz();
+    loadTrack();
+  </script>
+</body>
+</html>
