@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Winamp Spotify</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="player" class="winamp">
+    <!-- Title bar -->
+    <div class="titlebar" id="titlebar">
+      <span class="title-text">WINAMP &#9835; SPOTIFY</span>
+      <div class="title-buttons">
+        <button class="tb-btn" id="btn-ontop" title="Always on top">=</button>
+        <button class="tb-btn" id="btn-min" title="Minimize">_</button>
+        <button class="tb-btn" id="btn-close" title="Close">x</button>
+      </div>
+    </div>
+
+    <!-- Main display -->
+    <div class="main">
+      <div class="display">
+        <div class="display-top">
+          <div class="time" id="time">--:--</div>
+          <div class="status">
+            <span id="bitrate">---</span> kbps
+            <span id="khz">--</span> kHz
+            <span class="stereo" id="stereo">STEREO</span>
+          </div>
+        </div>
+        <div class="visualizer">
+          <canvas id="viz" width="76" height="16"></canvas>
+        </div>
+        <div class="marquee">
+          <div class="marquee-text" id="marquee">*** Winamp Spotify loaded. Click "LOGIN" to connect. ***</div>
+        </div>
+        <div class="meta">
+          <span id="kbps2">kbps</span>
+          <span id="khz2">kHz</span>
+        </div>
+      </div>
+
+      <!-- Balance / volume / position -->
+      <div class="sliders">
+        <div class="slider-row">
+          <label>VOL</label>
+          <input type="range" id="volume" min="0" max="100" value="70" />
+        </div>
+        <div class="slider-row">
+          <label>POS</label>
+          <input type="range" id="position" min="0" max="1000" value="0" />
+        </div>
+      </div>
+
+      <!-- Transport -->
+      <div class="transport">
+        <button class="btn prev" id="btn-prev" title="Previous">&#9198;</button>
+        <button class="btn play" id="btn-play" title="Play">&#9654;</button>
+        <button class="btn pause" id="btn-pause" title="Pause">&#10073;&#10073;</button>
+        <button class="btn stop" id="btn-stop" title="Stop">&#9632;</button>
+        <button class="btn next" id="btn-next" title="Next">&#9197;</button>
+        <button class="btn shuffle" id="btn-shuffle" title="Shuffle">&#128256;</button>
+        <button class="btn repeat" id="btn-repeat" title="Repeat">&#128257;</button>
+      </div>
+    </div>
+
+    <!-- Login/settings overlay -->
+    <div id="setup" class="setup hidden">
+      <div class="setup-card">
+        <h2>Connect to Spotify</h2>
+        <p>Enter your Spotify <b>Client ID</b>. Create one free at
+          <a href="#" id="link-dashboard">developer.spotify.com/dashboard</a>.
+          Set the redirect URI to:
+          <code>http://127.0.0.1:8888/callback</code>
+        </p>
+        <input type="text" id="client-id" placeholder="Spotify Client ID" />
+        <div class="setup-buttons">
+          <button id="btn-login">LOGIN</button>
+          <button id="btn-logout">Logout</button>
+          <button id="btn-close-setup">Close</button>
+        </div>
+        <p class="note">
+          Note: playback requires a Spotify Premium account and an active Spotify device
+          (desktop/phone/web). This app controls that device.
+        </p>
+      </div>
+    </div>
+
+    <button class="gear" id="btn-settings" title="Settings">&#9881;</button>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
