@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "description": "Classic Winamp-style desktop player that streams from Spotify",
   "main": "src/main/main.js",
-  "author": "arnonport",
+  "author": {
+    "name": "arnonport",
+    "email": "arnonport@arnonport.com"
+  },
+  "homepage": "https://github.com/Arnonfr/arnonport",
   "license": "MIT",
   "scripts": {
     "start": "electron .",
